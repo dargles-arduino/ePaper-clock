@@ -12,7 +12,7 @@
 /* Program identification */ 
 #define PROG    "ePaper-clock"
 #define VER     "1.0"
-#define BUILD   "25Jun2021 @15:33h"
+#define BUILD   "25Jun2021 @17:59h"
 
 // Define the board (used later)
 #define LILYGO_T5_V213
@@ -40,9 +40,11 @@
 
 // FreeFonts from Adafruit_GFX
 #include <Fonts/FreeMonoBold9pt7b.h>
-#include <Fonts/FreeMonoBold12pt7b.h>
-#include <Fonts/FreeMonoBold18pt7b.h>
 #include <Fonts/FreeMonoBold24pt7b.h>
+#include <Fonts/FreeSans9pt7b.h>
+#include <Fonts/FreeSansBold9pt7b.h>
+#include <Fonts/FreeSansBold24pt7b.h>
+
 #include <GxIO/GxIO_SPI/GxIO_SPI.h>
 #include <GxIO/GxIO.h>
 
@@ -101,15 +103,27 @@ void setup()
     WiFi.mode(WIFI_OFF);  // Save power
 
     if(gotTime){
-      char timeStringBuff[50]; //50 chars should be enough
-      strftime(timeStringBuff, sizeof(timeStringBuff), "%A, %B %d %Y %H:%M:%S", &timeinfo);
-      //print like "const char*"
-      display.println(timeStringBuff);
-      changeFont("FreeMonoBold9pt7b", &FreeMonoBold9pt7b);
+      char timeStringBuff[8]; //50 chars should be enough
+      strftime(timeStringBuff, sizeof(timeStringBuff), "%I:%M", &timeinfo);
+      if(timeStringBuff[0]=='0')timeStringBuff[0]=' ';
+      // Clear the screen
       display.fillScreen(GxEPD_WHITE);
-      display.setCursor(0,20);
-      //display.printf("Connecting to\n  %s \n", ssid);
-      display.println(&timeinfo, "%A\n%B %d %Y\n%H:%Mh");
+      // Print the day to the screen
+      display.setFont(&FreeSans9pt7b);
+      display.setCursor(5,20);
+      display.println(&timeinfo, "%A"); //\n%B %d %Y\n%H:%Mh");
+      // Print the time to the screen
+      display.setFont(&FreeSansBold24pt7b);
+      display.setCursor(60,70);
+      display.print(timeStringBuff);
+      display.setFont(&FreeSans9pt7b);
+      display.println(&timeinfo, "%p");
+      // Print the date to the screen
+      display.setFont(&FreeSans9pt7b);
+      display.setCursor(100,115);
+      //display.println(date+"-"+ month+"-"+ year); //\n%B %d %Y\n%H:%Mh");      
+      display.print(&timeinfo, "%d %B %Y");
+      
       display.update();
     }
 
