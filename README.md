@@ -1,6 +1,8 @@
 # ePaper-clock
 A simple clock designed to work with the LilyGo ESP32 T5 plus the 2.13" ePaper display. Since it only sleeps for approximately 52 seconds, I'm not sure how useful it really is - I haven't done any power consumption tests. But the main idea is to get a working project that implements the main parts of a typical ePaper project.
 
+![ePaper-clock](https://user-images.githubusercontent.com/5638741/123490736-bd5ef280-d60c-11eb-94fe-85b94f46dde8.jpg)
+
 It _should_ all work if you:
 
   - set the board driver to be the ESP32 dev module;
