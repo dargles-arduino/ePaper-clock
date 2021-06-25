@@ -1,25 +1,31 @@
 /**
  * Program: ePaper-clock
  * Purpose:
- *   A basic clock display getting the time from the Internet. It's tailored for the 
- *   LilyGo T5 with 2.13" screen.
+ *   A basic clock display which gets the time from the Internet and 
+ *   updates the time each minute, going into deep sleep between readings. 
+ *   It's tailored for the LilyGo T5 with 2.13" ePaper screen.
  * Notes:
  *   1) Uses the ESP32 Dev Module board definition in the Arduino IDE.
  *   2) It's necessary to install the GxEPD and Adafruit_GFX libraries
- * @author: David Argles, d.argles@gmx.com: drawing heavily on code by Lewis he
+ *   3) It also needs a myInfo.h file which includes just two lines: 
+ *        const char* ssid       = "mySSID";
+ *        const char* password   = "myPassword";
+ *      I do it like this so I don't expose my password on GitHub.
+ * @author: David Argles, d.argles@gmx.com: drawing heavily on code by 
+ *          Lewis he and others.
  */
 
 /* Program identification */ 
 #define PROG    "ePaper-clock"
 #define VER     "1.0"
-#define BUILD   "25Jun2021 @17:59h"
+#define BUILD   "25Jun2021 @20:07h"
 
 // Define the board (used later)
 #define LILYGO_T5_V213
 
 // Other defines
-#define ORIENTATION 1 // 1 and 3 are landscape
-#define SLEEPTIME   1 // in minutes
+#define ORIENTATION 1   // 1 and 3 are landscape
+#define SLEEPTIME   60  // in seconds
 
 #include <boards.h>
 #include <GxEPD.h>
@@ -56,6 +62,7 @@ const char* ntpServer = "pool.ntp.org"; // The Internet time server
 const long  gmtOffset_sec = 0;
 const int   daylightOffset_sec = 3600;
 struct tm   timeinfo;
+long        startTime = millis();
 
 // Needed to create the display instance below
 GxIO_Class io(SPI,  EPD_CS, EPD_DC,  EPD_RSET);
@@ -102,6 +109,10 @@ void setup()
     WiFi.disconnect();    // Don't need this on any more
     WiFi.mode(WIFI_OFF);  // Save power
 
+    int runTime = (millis() - startTime) / 1000;
+    Serial.print("Runtime is: ");
+    Serial.println(runTime);
+
     if(gotTime){
       char timeStringBuff[8]; //50 chars should be enough
       strftime(timeStringBuff, sizeof(timeStringBuff), "%I:%M", &timeinfo);
@@ -129,9 +140,13 @@ void setup()
 
     display.powerDown();
 
+    Serial.print("Seconds were: ");
+    Serial.println(timeinfo.tm_sec);
+    Serial.print("Total run time: ");
+    Serial.println((millis()-startTime)/1000);
     Serial.println("\nPowering down...");
     // Set wake-up timer
-    esp_sleep_enable_timer_wakeup(SLEEPTIME*60*1000000ULL);
+    esp_sleep_enable_timer_wakeup((SLEEPTIME-timeinfo.tm_sec)*1000000ULL);
     // Allow manual restart
     esp_sleep_enable_ext1_wakeup(((uint64_t)(((uint64_t)1) << BUTTON_1)), ESP_EXT1_WAKEUP_ALL_LOW);
     esp_deep_sleep_start();
